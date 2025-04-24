@@ -1,39 +1,36 @@
-import React, { useState } from 'react';
+import React from 'react'
 import { useNavigate } from 'react-router-dom';
-
+import { useState } from 'react';   
 const backend_url = import.meta.env.VITE_BACKEND_URL;
 
-const Login = () => {
+const Register = () => {
     const navigate = useNavigate();
-    const [loginUser, setLoginUser] = useState({
-        email: "",
-        password: ""
-    });
-
-    const login = () => {
-        fetch(`${backend_url}/login`, {
+    const [newUser, setNewUser] = useState()
+    const [register, setRegister] = useState({
+        email : "",
+        password : ""
+    })
+    const registerUser = () => {
+        fetch(`${backend_url}/register`, {
             method: "POST",
             headers: { "Content-type": "application/json" },
-            body: JSON.stringify(loginUser)
+            body: JSON.stringify(register)
         })
             .then((response) => response.json())
             .then((data) => {
-                console.log(data);
-                if (data.token) {
-                    navigate("/perfil");
-                } else {
-                    alert("Login incorrecto. Revisa tu email o contraseña.");
+                console.log(data)
+                if (data.msg){
+                navigate("/login")}
+                else {
+                    alert ("Usuario ya existe")
                 }
-
             })
-            .catch((err) => {
-                console.error("Error en el login:", err);
-            });
-    };
+            .catch((err) => {return err});
+    }
 
     return (
         <div className="text-center container">
-            <h1>Inicia sesion aqui!!</h1>
+            <h1>Crea tu usuario</h1>
             <form>
                 <div className="mb-3">
                     <label htmlFor="exampleInputEmail1" className="form-label">Email address</label>
@@ -42,8 +39,8 @@ const Login = () => {
                         className="form-control border border-black"
                         id="exampleInputEmail1"
                         aria-describedby="emailHelp"
-                        value={loginUser.email}
-                        onChange={(e) => setLoginUser({ ...loginUser, email: e.target.value })}
+                        value={register.email}
+                        onChange={(e) => setRegister({ ... register, email: e.target.value })}
                     />
                     <div id="emailHelp" className="form-text">We'll never share your email with anyone else.</div>
                 </div>
@@ -53,20 +50,20 @@ const Login = () => {
                         type="password"
                         className="form-control border border-black"
                         id="exampleInputPassword1"
-                        value={loginUser.password}
-                        onChange={(e) => setLoginUser({ ...loginUser, password: e.target.value })}
+                        value={register.password}
+                        onChange={(e) => setRegister({ ...register, password: e.target.value })}
                     />
                 </div>
                 <button
                     type="button"
                     className="btn btn-primary"
-                    onClick={login}
+                    onClick={registerUser}
                 >
-                    Submit
+                    Crear usuario!
                 </button>
             </form>
         </div>
-    );
-};
+    )
+}
 
-export default Login;
+export default Register

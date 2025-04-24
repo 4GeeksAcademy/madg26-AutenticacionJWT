@@ -60,7 +60,7 @@ def register():
         return jsonify({'msg' : 'El campo password es obligatorio'}), 400
     verificar_email = User.query.filter_by(email = body['email']).first()
     if verificar_email:
-        return jsonify({'msg' : 'El email ya existe'}), 400
+        return jsonify({'error' : 'El email ya existe'}), 400
     new_user = User()
     new_user.email = body['email']
     new_user.password = body['password']
