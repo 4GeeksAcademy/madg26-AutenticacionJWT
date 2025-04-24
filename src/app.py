@@ -6,10 +6,16 @@ from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
-from api.models import db
+from api.models import db, User
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
+from flask_cors import CORS
+
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
 
 # from models import Person
 
@@ -18,7 +24,9 @@ static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../public/')
 app = Flask(__name__)
 app.url_map.strict_slashes = False
-
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_KEY")
+jwt = JWTManager(app)
+CORS(app)
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
@@ -41,6 +49,49 @@ setup_commands(app)
 app.register_blueprint(api, url_prefix='/api')
 
 # Handle/serialize errors like a JSON object
+@app.route('/register', methods = ['POST'])
+def register():
+    body = request.get_json(silent = True)
+    if body is None:
+        return jsonify({'msg' : 'Debe enviar la informacion solicitada'}), 400
+    if 'email' not in body:
+        return jsonify({'msg' : 'El campo email es obligatorio'}), 400
+    if 'password' not in body:
+        return jsonify({'msg' : 'El campo password es obligatorio'}), 400
+    verificar_email = User.query.filter_by(email = body['email']).first()
+    if verificar_email:
+        return jsonify({'msg' : 'El email ya existe'}), 400
+    new_user = User()
+    new_user.email = body['email']
+    new_user.password = body['password']
+    new_user.is_active = True
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({'msg' : 'Usuario creado exitosamente'})
+    
+
+@app.route('/login', methods = ['POST'])
+def login():
+    body = request.get_json(silent = True)
+    if body is None:
+        return jsonify({'msg' : 'Debe enviar la informacion solicitada'}), 400
+    if 'email' not in body:
+        return jsonify({'msg' : 'El campo email es obligatorio'}), 400
+    if 'password' not in body:
+        return jsonify({'msg' : 'El campo password es obligatorio'}), 400
+    user = User.query.filter_by(email = body['email']).first()
+    if user is None:
+        return jsonify({'msg': 'Usuario o contraseña es incorrecto'}), 400
+    if body['password'] != user.password:
+        return jsonify({'msg' : 'Usuario o contraseña incorrecta'}), 400
+    access_token = create_access_token(identity = user.email)
+    return jsonify({'msg' : 'Usuario logeado con exito', 'token' : access_token}), 200
+
+@app.route('/private', methods = ['GET'])
+@jwt_required()
+def private():
+    current_user = get_jwt_identity()
+    return jsonify({'msg' : 'Token autorizado', 'data' : current_user}), 200
 
 
 @app.errorhandler(APIException)
