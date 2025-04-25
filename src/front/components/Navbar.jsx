@@ -6,16 +6,8 @@ import { useEffect } from "react";
 export const Navbar = () => {
 	const { store, dispatch } = useGlobalReducer()
 	const navigate = useNavigate();
-	if (location.pathname != "/perfil"){
-		dispatch({
-			type: "set_current_user",
-			payload: false
-		})
-	}
+
 	useEffect(() => {
-		if (store.currentUser == false) {
-			navigate("/")
-		}
 	}, [store.currentUser])
 	return (
 		<nav className="navbar navbar-light bg-light">
@@ -24,8 +16,7 @@ export const Navbar = () => {
 					<span className="navbar-brand mb-0 h1">React Boilerplate</span>
 				</Link>
 				<div className="ml-auto">
-					{store.currentUser == null && <span>Cargando...</span>}
-					{store.currentUser == false &&
+					{store.currentUser == null &&
 						<>
 							<button className="btn btn-success me-3"
 								onClick={() => { navigate("/login") }}>Iniciar sesion</button>
@@ -37,8 +28,10 @@ export const Navbar = () => {
 						localStorage.removeItem("token")
 						dispatch({
 							type: "set_current_user",
-							payload: false
+							payload: null
 						})
+						navigate("/")
+
 
 					}}>Cerrar sesión</button>}
 				</div>

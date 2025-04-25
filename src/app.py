@@ -16,6 +16,7 @@ from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
+from flask_bcrypt import Bcrypt
 
 # from models import Person
 
@@ -26,6 +27,7 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_KEY")
 jwt = JWTManager(app)
+bcrypt = Bcrypt(app)
 CORS(app)
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
@@ -63,7 +65,7 @@ def register():
         return jsonify({'error' : 'El email ya existe'}), 400
     new_user = User()
     new_user.email = body['email']
-    new_user.password = body['password']
+    new_user.password = bcrypt.generate_password_hash(body['password']).decode('utf-8')
     new_user.is_active = True
     db.session.add(new_user)
     db.session.commit()
@@ -82,7 +84,8 @@ def login():
     user = User.query.filter_by(email = body['email']).first()
     if user is None:
         return jsonify({'msg': 'Usuario o contraseña es incorrecto'}), 400
-    if body['password'] != user.password:
+    valid_password = bcrypt.check_password_hash(user.password, body['password'])
+    if not valid_password:
         return jsonify({'msg' : 'Usuario o contraseña incorrecta'}), 400
     access_token = create_access_token(identity = user.email)
     return jsonify({'msg' : 'Usuario logeado con exito', 'token' : access_token, 'user' : user.serialize()}), 200

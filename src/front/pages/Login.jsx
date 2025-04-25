@@ -31,7 +31,7 @@ const Login = () => {
                 } else {
                     dispatch({
                         type: "set_current_user", 
-                        payload: false
+                        payload: null
                       })
                     alert("Login incorrecto. Revisa tu email o contraseña.");
                 }
@@ -40,7 +40,7 @@ const Login = () => {
             .catch((err) => {
                 dispatch({
                     type: "set_current_user", 
-                    payload: false
+                    payload: null
                   })
                 console.error("Error en el login:", err);
             });

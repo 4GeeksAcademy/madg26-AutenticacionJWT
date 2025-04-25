@@ -21,7 +21,7 @@ const PerfilUser = () => {
           } else {
             dispatch({
               type: "set_current_user", 
-              payload: false
+              payload: null
             })
           }
 
@@ -30,7 +30,7 @@ const PerfilUser = () => {
           console.error("Error en el login:", err);
           dispatch({
             type: "set_current_user", 
-            payload: false
+            payload: null
           })
       })
   }
@@ -39,10 +39,7 @@ const PerfilUser = () => {
     verifyIsAuth()
   }, [])
   if (store.currentUser == null){
-    return <h1>Cargando...</h1>
-  }
-  if (store.currentUser == false){
-    return <h1>No tienes permiso para estar aqui!</h1>
+    return <h1>No tienes permiso para estar aqui!!!</h1>
   }
   if (store.currentUser){
     return (
