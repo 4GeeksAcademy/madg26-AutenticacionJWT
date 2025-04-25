@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useGlobalReducer from "../hooks/useGlobalReducer";
 
 const backend_url = import.meta.env.VITE_BACKEND_URL;
 
 const Login = () => {
+    const { dispatch } = useGlobalReducer()
     const navigate = useNavigate();
     const [loginUser, setLoginUser] = useState({
         email: "",
@@ -20,13 +22,26 @@ const Login = () => {
             .then((data) => {
                 console.log(data);
                 if (data.token) {
+                    localStorage.setItem("token", data.token)
+                    dispatch({
+                        type: "set_current_user", 
+                        payload: data.user
+                      })
                     navigate("/perfil");
                 } else {
+                    dispatch({
+                        type: "set_current_user", 
+                        payload: false
+                      })
                     alert("Login incorrecto. Revisa tu email o contraseña.");
                 }
 
             })
             .catch((err) => {
+                dispatch({
+                    type: "set_current_user", 
+                    payload: false
+                  })
                 console.error("Error en el login:", err);
             });
     };

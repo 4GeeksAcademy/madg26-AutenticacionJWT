@@ -85,13 +85,16 @@ def login():
     if body['password'] != user.password:
         return jsonify({'msg' : 'Usuario o contraseña incorrecta'}), 400
     access_token = create_access_token(identity = user.email)
-    return jsonify({'msg' : 'Usuario logeado con exito', 'token' : access_token}), 200
+    return jsonify({'msg' : 'Usuario logeado con exito', 'token' : access_token, 'user' : user.serialize()}), 200
 
 @app.route('/private', methods = ['GET'])
 @jwt_required()
 def private():
-    current_user = get_jwt_identity()
-    return jsonify({'msg' : 'Token autorizado', 'data' : current_user}), 200
+    current_user_email = get_jwt_identity()
+    current_user = User.query.filter_by(email = current_user_email).first()
+    if not current_user:
+        return jsonify({'msg' : 'User not found' }), 404
+    return jsonify({'msg' : 'Token autorizado', 'user' : current_user.serialize()}), 200
 
 
 @app.errorhandler(APIException)
